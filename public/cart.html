@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cart & Checkout</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f0fdfa; --card: #ffffff; --accent: #0891b2; --accent2: #0e7490;
+      --text: #0f172a; --muted: #475569; --border: rgba(8,145,178,0.22);
+      --success: #059669; --danger: #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Outfit', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 10;
+    }
+    nav a { color: var(--text); text-decoration: none; font-weight: 700; }
+    nav .links { display: flex; gap: 1rem; align-items: center; }
+    nav .links a { font-weight: 500; font-size: 0.9rem; color: var(--muted); }
+    nav .links a:hover { color: var(--accent); }
+    .wrap { max-width: 780px; margin: 0 auto; padding: 1.75rem 1.25rem 4rem; }
+    h1 { font-size: 1.65rem; font-weight: 800; margin-bottom: 0.35rem; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .steps {
+      display: flex; gap: 0.5rem; margin-bottom: 1.75rem; flex-wrap: wrap;
+    }
+    .step {
+      flex: 1; min-width: 100px; text-align: center; padding: 0.55rem 0.75rem;
+      border-radius: 10px; font-size: 0.82rem; font-weight: 600; color: var(--muted);
+      background: #e2e8f0; border: 1px solid transparent;
+    }
+    .step.active { background: rgba(8,145,178,0.12); color: var(--accent2); border-color: var(--border); }
+    .step.done { background: rgba(5,150,105,0.1); color: var(--success); }
+    .item {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 1rem; margin-bottom: 0.75rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+      transition: box-shadow 0.15s;
+    }
+    .item:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
+    .item img { width: 72px; height: 72px; object-fit: cover; border-radius: 12px; background: #e2e8f0; }
+    .item .info { flex: 1; min-width: 140px; }
+    .item .name { font-weight: 700; font-size: 1.05rem; }
+    .item .unit { color: var(--muted); font-size: 0.85rem; margin-top: 0.15rem; }
+    .item .line { color: var(--accent2); font-weight: 700; margin-top: 0.25rem; }
+    .qty { display: flex; align-items: center; gap: 0.35rem; }
+    .qty button {
+      background: #f1f5f9; border: 1px solid var(--border); color: var(--text);
+      width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; font-weight: 600;
+    }
+    .qty button:hover { background: rgba(8,145,178,0.12); }
+    .qty span { min-width: 28px; text-align: center; font-weight: 700; }
+    .remove {
+      background: transparent; border: 1px solid rgba(220,38,38,0.35); color: var(--danger);
+      border-radius: 8px; padding: 0.4rem 0.7rem; cursor: pointer; font-size: 0.8rem; font-weight: 600;
+    }
+    .remove:hover { background: rgba(220,38,38,0.08); }
+    .summary {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 1.25rem; margin: 1.25rem 0;
+    }
+    .summary-row { display: flex; justify-content: space-between; padding: 0.4rem 0; font-size: 0.95rem; }
+    .summary-row.total { font-size: 1.25rem; font-weight: 800; border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.75rem; }
+    .summary-row .disc { color: var(--success); }
+    .pay-box {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 1.35rem; margin-top: 0.5rem;
+    }
+    .pay-box h2 { font-size: 1.1rem; margin-bottom: 0.85rem; }
+    .pay-box label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-bottom: 0.3rem; }
+    .pay-box input[type=text], .pay-box input[type=file] {
+      width: 100%; padding: 0.7rem 0.9rem; border-radius: 10px; border: 1px solid var(--border);
+      background: #f8fafc; color: var(--text); margin-bottom: 0.9rem; font-family: inherit; font-size: 0.95rem;
+    }
+    .pay-box input:focus { outline: none; border-color: var(--accent); }
+    .qr { max-width: 180px; border-radius: 12px; border: 1px solid var(--border); margin: 0.5rem 0 1rem; display: block; }
+    .upi-id { font-weight: 700; color: var(--accent2); font-size: 1.05rem; margin-bottom: 0.5rem; word-break: break-all; }
+    .coupon-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .coupon-row input { flex: 1; min-width: 140px; }
+    .btn {
+      background: linear-gradient(135deg, #06b6d4, #0891b2); color: #fff; font-weight: 700;
+      border: none; border-radius: 12px; padding: 0.85rem 1.5rem; cursor: pointer; font-size: 1rem;
+      font-family: inherit; transition: transform 0.1s, opacity 0.15s;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-outline {
+      background: transparent; color: var(--accent2); border: 1px solid var(--border);
+    }
+    .btn-full { width: 100%; }
+    .msg { margin-top: 1rem; padding: 0.9rem 1rem; border-radius: 12px; display: none; font-size: 0.92rem; }
+    .msg.ok { display: block; background: rgba(5,150,105,0.1); color: var(--success); border: 1px solid rgba(5,150,105,0.25); }
+    .msg.err { display: block; background: rgba(220,38,38,0.08); color: var(--danger); border: 1px solid rgba(220,38,38,0.25); }
+    .empty {
+      text-align: center; padding: 3.5rem 1.5rem; background: var(--card);
+      border: 1px solid var(--border); border-radius: 16px;
+    }
+    .empty .icon { font-size: 3rem; margin-bottom: 0.75rem; }
+    .empty p { color: var(--muted); margin-bottom: 1.25rem; font-size: 1.05rem; }
+    .login-banner {
+      background: rgba(8,145,178,0.08); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1rem 1.15rem; margin-bottom: 1.25rem; font-size: 0.92rem; color: var(--muted);
+    }
+    .login-banner a { color: var(--accent2); font-weight: 700; }
+    .success-box {
+      text-align: center; padding: 2.5rem 1.5rem; background: var(--card);
+      border: 1px solid var(--border); border-radius: 16px; display: none;
+    }
+    .success-box .icon { font-size: 3rem; margin-bottom: 0.75rem; }
+    .success-box h2 { margin-bottom: 0.5rem; }
+    .success-box p { color: var(--muted); margin-bottom: 1.25rem; }
+    .spin {
+      width: 18px; height: 18px; border: 2px solid rgba(8,145,178,0.3);
+      border-top-color: var(--accent); border-radius: 50%; display: inline-block;
+      animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 0.4rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hint { font-size: 0.8rem; color: var(--muted); margin-top: -0.5rem; margin-bottom: 0.85rem; }
+  </style>
+<script src="/js/site-brand.js" defer></script>
+</head>
+<body>
+  <nav>
+    <a href="/">⛏️ Store</a>
+    <div class="links">
+      <a href="/my-orders.html">My Orders</a>
+      <a href="/">← Continue shopping</a>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <div id="cartView">
+      <h1>🛒 Your Cart</h1>
+      <p class="sub" id="cartSub">Review items and checkout</p>
+
+      <div class="steps">
+        <div class="step active" id="step1">1. Cart</div>
+        <div class="step" id="step2">2. Payment</div>
+        <div class="step" id="step3">3. Done</div>
+      </div>
+
+      <div id="loginBanner" class="login-banner" style="display:none;">
+        Please <a href="/login.html?next=/cart.html">login</a> or <a href="/register.html?next=/cart.html">register</a> to checkout.
+      </div>
+
+      <div id="items"></div>
+      <div id="empty" class="empty" style="display:none;">
+        <div class="icon">🛒</div>
+        <p>Your cart is empty</p>
+        <a href="/" class="btn" style="display:inline-block;text-decoration:none;width:auto;">Browse Store</a>
+      </div>
+
+      <div id="checkoutArea" style="display:none;">
+        <div class="summary" id="summary"></div>
+
+        <div class="pay-box">
+          <h2>Apply coupon / referral</h2>
+          <div class="coupon-row">
+            <input type="text" id="couponCode" placeholder="Enter code" style="text-transform:uppercase;" />
+            <button type="button" class="btn btn-outline" id="btnApplyCoupon" style="width:auto;padding:0.65rem 1.1rem;">Apply</button>
+            <button type="button" class="btn btn-outline" id="btnClearCoupon" style="width:auto;padding:0.65rem 1.1rem;display:none;">Clear</button>
+          </div>
+          <div id="couponMsg" style="font-size:0.88rem;margin-bottom:0.75rem;"></div>
+
+          <h2>Pay via UPI</h2>
+          <div id="upiInfo" style="margin-bottom:1rem;">
+            <p style="color:var(--muted);font-size:0.9rem;">Loading payment details...</p>
+          </div>
+          <label>Your UPI ID (used for payment)</label>
+          <input type="text" id="payerUpi" placeholder="yourname@upi" />
+          <p class="hint">Enter the UPI ID from which you sent the payment</p>
+          <label>Payment screenshot / proof</label>
+          <input type="file" id="proof" accept="image/*" />
+          <p class="hint">Upload screenshot of successful UPI payment</p>
+          <button type="button" class="btn btn-full" id="btnCheckout">Submit Order</button>
+          <div id="chkLoading" style="display:none;margin-top:0.75rem;color:var(--muted);"><span class="spin"></span> Submitting...</div>
+          <div class="msg" id="msg"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="successView" class="success-box">
+      <div class="icon">✅</div>
+      <h2>Order Submitted!</h2>
+      <p>Your payment is pending admin approval. Product will be delivered after approval.</p>
+      <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
+        <a href="/my-orders.html" class="btn" style="text-decoration:none;width:auto;">View My Orders</a>
+        <a href="/" class="btn btn-outline" style="text-decoration:none;width:auto;">Back to Store</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function getCart(){ try{ return JSON.parse(localStorage.getItem('mc_cart')||'[]'); }catch{ return []; } }
+    function setCart(c){ localStorage.setItem('mc_cart', JSON.stringify(c)); }
+
+    let loggedIn = false;
+    let appliedCoupon = null;
+    let upiId = '';
+    let upiQr = '';
+
+    async function checkAuth(){
+      try{
+        const r = await fetch('/api/me', { credentials: 'include' });
+        const d = await r.json();
+        loggedIn = !!(d.success && d.user);
+      }catch{ loggedIn = false; }
+      document.getElementById('loginBanner').style.display = loggedIn ? 'none' : 'block';
+    }
+
+    let payMode = 'manual';
+    let gatewayProvider = 'razorpay';
+    async function loadUpi(){
+      try{
+        const r = await fetch('/api/settings');
+        const d = await r.json();
+        if(!d.success) return;
+        payMode = d.settings.payMode || 'manual';
+        gatewayProvider = d.settings.gatewayProvider || 'razorpay';
+        upiId = d.settings.upiId || '';
+        upiQr = d.settings.upiQr || '';
+        const box = document.getElementById('upiInfo');
+        const payerBox = document.getElementById('payerUpi')?.closest('label') || document.getElementById('payerUpi');
+        const proofInput = document.getElementById('proof');
+        const btn = document.getElementById('btnCheckout');
+
+        if(payMode === 'gateway'){
+          box.innerHTML = '<p style="font-weight:600;margin-bottom:0.5rem;">Online Payment: ' + escapeHtml(gatewayProvider.toUpperCase()) + '</p>' +
+            '<p style="color:var(--muted);font-size:0.85rem;">Click Pay Now — secure checkout will open. No screenshot needed.</p>';
+          if(document.getElementById('payerUpi')) document.getElementById('payerUpi').style.display = 'none';
+          if(proofInput) proofInput.style.display = 'none';
+          document.querySelectorAll('.hint').forEach(h => h.style.display = 'none');
+          const labels = document.querySelectorAll('.pay-box label');
+          labels.forEach(l => { if(/UPI ID|screenshot|proof/i.test(l.textContent)) l.style.display='none'; });
+          if(btn) btn.textContent = 'Pay Now';
+        } else {
+          if(upiId || upiQr){
+            box.innerHTML =
+              (upiId ? '<div class="upi-id">UPI: ' + escapeHtml(upiId) + '</div>' : '') +
+              (upiQr ? '<img class="qr" src="' + escapeHtml(upiQr) + '" alt="UPI QR" />' : '') +
+              '<p style="color:var(--muted);font-size:0.85rem;">Pay the total amount to this UPI, then upload proof below.</p>';
+          } else {
+            box.innerHTML = '<p style="color:#d97706;font-size:0.9rem;">⚠️ Admin has not set UPI details yet.</p>';
+          }
+        }
+      }catch{}
+    }
+
+    function render(){
+      const cart = getCart();
+      const itemsEl = document.getElementById('items');
+      const empty = document.getElementById('empty');
+      const checkout = document.getElementById('checkoutArea');
+
+      if(!cart.length){
+        itemsEl.innerHTML = '';
+        empty.style.display = 'block';
+        checkout.style.display = 'none';
+        document.getElementById('cartSub').textContent = 'No items yet';
+        document.getElementById('step1').className = 'step';
+        document.getElementById('step2').className = 'step';
+        return;
+      }
+
+      empty.style.display = 'none';
+      checkout.style.display = 'block';
+      document.getElementById('cartSub').textContent = cart.length + ' item' + (cart.length>1?'s':'') + ' in cart';
+      document.getElementById('step1').className = 'step done';
+      document.getElementById('step2').className = 'step active';
+
+      let subtotal = 0;
+      itemsEl.innerHTML = cart.map((it, idx) => {
+        const qty = it.qty || 1;
+        const line = (it.price || 0) * qty;
+        subtotal += line;
+        return '<div class="item">' +
+          (it.image ? '<img src="' + escapeHtml(it.image) + '" alt="" />' : '<div style="width:72px;height:72px;border-radius:12px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🎁</div>') +
+          '<div class="info"><div class="name">' + escapeHtml(it.name) + '</div>' +
+          '<div class="unit">₹' + Number(it.price).toFixed(2) + ' each</div>' +
+          '<div class="line">₹' + line.toFixed(2) + '</div></div>' +
+          '<div class="qty">' +
+          '<button type="button" data-dec="' + idx + '">−</button><span>' + qty + '</span>' +
+          '<button type="button" data-inc="' + idx + '">+</button></div>' +
+          '<button type="button" class="remove" data-rm="' + idx + '">Remove</button></div>';
+      }).join('');
+
+      itemsEl.querySelectorAll('[data-inc]').forEach(btn => {
+        btn.onclick = () => {
+          const c = getCart();
+          const i = Number(btn.dataset.inc);
+          c[i].qty = Math.min(99, (c[i].qty||1) + 1);
+          setCart(c); render();
+        };
+      });
+      itemsEl.querySelectorAll('[data-dec]').forEach(btn => {
+        btn.onclick = () => {
+          const c = getCart();
+          const i = Number(btn.dataset.dec);
+          c[i].qty = Math.max(1, (c[i].qty||1) - 1);
+          setCart(c); render();
+        };
+      });
+      itemsEl.querySelectorAll('[data-rm]').forEach(btn => {
+        btn.onclick = () => {
+          const c = getCart();
+          c.splice(Number(btn.dataset.rm), 1);
+          setCart(c); render();
+        };
+      });
+
+      const discount = appliedCoupon ? (appliedCoupon.discount || 0) : 0;
+      const total = Math.max(0, subtotal - discount);
+      document.getElementById('summary').innerHTML =
+        '<div class="summary-row"><span>Subtotal</span><span>₹' + subtotal.toFixed(2) + '</span></div>' +
+        (discount > 0 ? '<div class="summary-row"><span>Discount' + (appliedCoupon.code ? ' (' + escapeHtml(appliedCoupon.code) + ')' : '') + '</span><span class="disc">−₹' + discount.toFixed(2) + '</span></div>' : '') +
+        '<div class="summary-row total"><span>Total</span><span>₹' + total.toFixed(2) + '</span></div>';
+    }
+
+    document.getElementById('btnApplyCoupon').onclick = async () => {
+      const code = (document.getElementById('couponCode').value || '').trim();
+      const msg = document.getElementById('couponMsg');
+      if(!code){ msg.style.color = '#dc2626'; msg.textContent = 'Enter a code'; return; }
+      const cart = getCart();
+      try{
+        const res = await fetch('/api/validate-coupon', {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, items: cart.map(i => ({ productId: i.productId, qty: i.qty||1 })) })
+        });
+        const data = await res.json();
+        if(data.success){
+          appliedCoupon = { code: data.code, discount: data.discount, type: data.type, value: data.value };
+          msg.style.color = '#059669';
+          msg.textContent = data.message || ('Applied! ₹' + data.discount + ' off');
+          document.getElementById('btnClearCoupon').style.display = 'inline-block';
+          render();
+        } else {
+          appliedCoupon = null;
+          msg.style.color = '#dc2626';
+          msg.textContent = data.message || 'Invalid code';
+          render();
+        }
+      }catch{
+        msg.style.color = '#dc2626';
+        msg.textContent = 'Failed to validate';
+      }
+    };
+
+    document.getElementById('btnClearCoupon').onclick = () => {
+      appliedCoupon = null;
+      document.getElementById('couponCode').value = '';
+      document.getElementById('couponMsg').textContent = '';
+      document.getElementById('btnClearCoupon').style.display = 'none';
+      render();
+    };
+
+    document.getElementById('btnCheckout').onclick = async () => {
+      const msg = document.getElementById('msg');
+      msg.className = 'msg';
+      if(!loggedIn){
+        msg.className = 'msg err';
+        msg.textContent = 'Please login first.';
+        return;
+      }
+      const cart = getCart();
+      if(!cart.length) return;
+      const btn = document.getElementById('btnCheckout');
+      const loading = document.getElementById('chkLoading');
+      btn.disabled = true;
+      loading.style.display = 'block';
+
+      try{
+        if(payMode === 'gateway'){
+          // Online gateway
+          const res = await fetch('/api/pay/create-order', {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              items: cart.map(i => ({ productId: i.productId, qty: i.qty||1 })),
+              couponCode: appliedCoupon && appliedCoupon.code ? appliedCoupon.code : ''
+            })
+          });
+          const data = await res.json();
+          if(!data.success){
+            msg.className = 'msg err';
+            msg.textContent = data.message || 'Failed to start payment';
+            btn.disabled = false;
+            loading.style.display = 'none';
+            return;
+          }
+          if(data.provider === 'razorpay'){
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = () => {
+              const rzp = new Razorpay({
+                key: data.keyId,
+                amount: data.amount,
+                currency: data.currency || 'INR',
+                order_id: data.orderId,
+                name: 'Store',
+                description: 'Order payment',
+                handler: async function(response){
+                  const v = await fetch('/api/pay/verify', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      paymentId: data.paymentId,
+                      razorpay_payment_id: response.razorpay_payment_id,
+                      razorpay_order_id: response.razorpay_order_id,
+                      razorpay_signature: response.razorpay_signature
+                    })
+                  });
+                  const vd = await v.json();
+                  if(vd.success){
+                    localStorage.removeItem('mc_cart');
+                    document.getElementById('cartView').style.display = 'none';
+                    document.getElementById('successView').style.display = 'block';
+                    document.getElementById('step3').className = 'step active';
+                  } else {
+                    msg.className = 'msg err';
+                    msg.textContent = vd.message || 'Verification failed';
+                  }
+                }
+              });
+              rzp.open();
+              btn.disabled = false;
+              loading.style.display = 'none';
+            };
+            script.onerror = () => {
+              msg.className = 'msg err';
+              msg.textContent = 'Could not load Razorpay';
+              btn.disabled = false;
+              loading.style.display = 'none';
+            };
+            document.body.appendChild(script);
+            return;
+          }
+          if(data.provider === 'stripe'){
+            msg.className = 'msg ok';
+            msg.textContent = 'Stripe intent created. Full Stripe Elements UI can be enabled; paymentId: ' + data.paymentId;
+            btn.disabled = false;
+            loading.style.display = 'none';
+            return;
+          }
+          msg.className = 'msg ok';
+          msg.textContent = data.message || 'Order created. Complete payment with ' + data.provider;
+          btn.disabled = false;
+          loading.style.display = 'none';
+          return;
+        }
+
+        // Manual UPI flow
+        const payerUpi = (document.getElementById('payerUpi').value || '').trim();
+        const proof = document.getElementById('proof');
+        if(!payerUpi){ msg.className = 'msg err'; msg.textContent = 'Enter your UPI ID used for payment.'; btn.disabled=false; loading.style.display='none'; return; }
+        if(!proof.files || !proof.files[0]){ msg.className = 'msg err'; msg.textContent = 'Upload payment proof screenshot.'; btn.disabled=false; loading.style.display='none'; return; }
+
+        const fd = new FormData();
+        fd.append('items', JSON.stringify(cart.map(i => ({ productId: i.productId, qty: i.qty||1 }))));
+        fd.append('payerUpi', payerUpi);
+        fd.append('proof', proof.files[0]);
+        if(appliedCoupon && appliedCoupon.code) fd.append('couponCode', appliedCoupon.code);
+        const res = await fetch('/api/checkout', { method: 'POST', credentials: 'include', body: fd });
+        const data = await res.json();
+        if(data.success){
+          localStorage.removeItem('mc_cart');
+          document.getElementById('cartView').style.display = 'none';
+          document.getElementById('successView').style.display = 'block';
+          document.getElementById('step1').className = 'step done';
+          document.getElementById('step2').className = 'step done';
+          document.getElementById('step3').className = 'step active';
+        } else {
+          msg.className = 'msg err';
+          msg.textContent = data.message || 'Checkout failed';
+        }
+      }catch(e){
+        msg.className = 'msg err';
+        msg.textContent = 'Network error';
+      }
+      btn.disabled = false;
+      loading.style.display = 'none';
+    };
+
+    checkAuth().then(() => { loadUpi(); render(); });
+  </script>
+<script src="/js/promo.js"></script>
+</body>
+</html>

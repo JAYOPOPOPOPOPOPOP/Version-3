@@ -1,0 +1,71 @@
+{
+  "users": [],
+  "pages": [],
+  "categories": [],
+  "products": [],
+  "orders": [],
+  "coupons": [],
+  "referralLinks": [],
+  "connectors": [],
+  "announcements": [],
+  "sales": [],
+  "tickets": [],
+  "quickLinks": [],
+  "payments": [],
+  "globalPendingCommands": [],
+  "ipBlacklist": [],
+  "faqs": [],
+  "ranks": [
+    {
+      "id": "admin",
+      "name": "Admin",
+      "isSystem": true,
+      "permissions": [
+        "*"
+      ],
+      "productDiscounts": {}
+    },
+    {
+      "id": "moderator",
+      "name": "Moderator",
+      "isSystem": true,
+      "permissions": [
+        "tickets.view",
+        "tickets.reply"
+      ],
+      "productDiscounts": {}
+    },
+    {
+      "id": "support",
+      "name": "Support",
+      "isSystem": true,
+      "permissions": [
+        "tickets.view",
+        "tickets.reply"
+      ],
+      "productDiscounts": {}
+    },
+    {
+      "id": "member",
+      "name": "Member",
+      "isSystem": true,
+      "permissions": [],
+      "productDiscounts": {}
+    }
+  ],
+  "settings": {
+    "siteName": "My Store",
+    "tagline": "",
+    "currency": "INR",
+    "currencySymbol": "₹",
+    "maintenanceMode": false,
+    "theme": "dark",
+    "logo": "",
+    "favicon": "",
+    "discord": "",
+    "serverIp": "",
+    "fontFamily": "Outfit, sans-serif"
+  },
+  "paymentSettings": {},
+  "sessions": {}
+}
